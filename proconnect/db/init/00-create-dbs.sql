@@ -1,0 +1,3 @@
+CREATE DATABASE auth_db;
+CREATE DATABASE pro_db;
+CREATE DATABASE booking_db;

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="ProConnect - Conecta con profesionales confiables para tus servicios">
+<meta name="keywords" content="profesionales, servicios, citas, reservas">
+<title>ProConnect - Plataforma de Servicios Profesionales</title>
+<link rel="stylesheet" href="src/app.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg class="logo" width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <circle cx="16" cy="16" r="14" stroke="#4da3ff" stroke-width="3" fill="none"/>
+      <path d="M12 16L16 12L20 16L16 20L12 16Z" fill="#4da3ff"/>
+      <circle cx="16" cy="16" r="6" stroke="#4da3ff" stroke-width="2" fill="none"/>
+    </svg>
+    <span class="brand-text">ProConnect</span>
+  </div>
+  <nav>
+    <a href="#/login" id="loginLink" class="nav-link"><i class="fas fa-sign-in-alt"></i> Iniciar sesión</a>
+    <button id="logoutBtn" class="ghost hidden"><i class="fas fa-sign-out-alt"></i> Salir</button>
+  </nav>
+</header>
+<main id="app"></main>
+<script>window.API_URL='http://localhost:8080/api'</script>
+<script type="module" src="src/main.js?v=4"></script>
+</body>
+</html>

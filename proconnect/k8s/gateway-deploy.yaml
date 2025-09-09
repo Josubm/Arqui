@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: gateway, namespace: proconnect}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: gateway}}
+  template:
+    metadata: {labels: {app: gateway}}
+    spec:
+      containers:
+      - name: gateway
+        image: your-registry/gateway:latest
+        ports: [{containerPort: 8080}]
+        env:
+        - name: AUTH_URL
+          value: "http://auth-service.proconnect.svc.cluster.local:4001"
+        - name: PRO_URL
+          value: "http://professionals-service.proconnect.svc.cluster.local:4002"
+        - name: BOOK_URL
+          value: "http://booking-service.proconnect.svc.cluster.local:4003"
+        - name: CORS_ORIGIN
+          value: "*"
+---
+apiVersion: v1
+kind: Service
+metadata: {name: gateway, namespace: proconnect}
+spec:
+  selector: {app: gateway}
+  ports: [{port: 8080, targetPort: 8080}]

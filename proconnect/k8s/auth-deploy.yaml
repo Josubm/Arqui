@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: auth-service, namespace: proconnect}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: auth-service}}
+  template:
+    metadata: {labels: {app: auth-service}}
+    spec:
+      containers:
+      - name: auth-service
+        image: your-registry/auth-service:latest
+        ports: [{containerPort: 4001}]
+        env:
+        - name: DATABASE_URL
+          value: "postgres://postgres:postgres@postgres.proconnect.svc.cluster.local:5432/auth_db"
+        - name: JWT_SECRET
+          value: "supersecret"
+        - name: CORS_ORIGIN
+          value: "*"
+---
+apiVersion: v1
+kind: Service
+metadata: {name: auth-service, namespace: proconnect}
+spec:
+  selector: {app: auth-service}
+  ports: [{port: 4001, targetPort: 4001}]
