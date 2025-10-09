@@ -1,3 +1,6 @@
 # Arqui
 Proyecto Arquitectura
-Integrantes 
+
+Integrantes :
+
+Jose Barrios , Gerson Saenz
