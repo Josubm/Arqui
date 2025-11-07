@@ -1,0 +1,38 @@
+version: '3.9'
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5433:5432"
+    networks: [proconnect-test]
+
+  auth-service-test:
+    build: ./services/auth
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres-test:5432/auth_db_test
+      JWT_SECRET: test-secret
+      CORS_ORIGIN: http://localhost:5173
+      NODE_ENV: test
+    depends_on: [postgres-test]
+    ports: ["4001:4001"]
+    networks: [proconnect-test]
+    command: npm test
+
+  professionals-service-test:
+    build: ./services/professionals
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres-test:5432/pro_db_test
+      CORS_ORIGIN: http://localhost:5173
+      NODE_ENV: test
+    depends_on: [postgres-test]
+    ports: ["4002:4002"]
+    networks: [proconnect-test]
+    command: npm test
+
+networks:
+  proconnect-test:
+    driver: bridge
