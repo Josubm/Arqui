@@ -46,14 +46,39 @@ app.get('/services',async(_,res)=>{
   const c=await pool.connect(); try{const r=await c.query('SELECT * FROM services ORDER BY id'); res.json(r.rows)} finally{c.release()}
 })
 
+// ENDPOINT MEJORADO CON FILTROS AVANZADOS
 app.get('/professionals',async(req,res)=>{
   const c=await pool.connect()
   try{
-    const {serviceId}=req.query
-    // Solo profesionales reales: aquellos con email (creados por usuarios)
-    const r=serviceId
-      ? await c.query('SELECT * FROM professionals WHERE service_id=$1 AND email IS NOT NULL ORDER BY id',[serviceId])
-      : await c.query('SELECT * FROM professionals WHERE email IS NOT NULL ORDER BY id')
+    const {serviceId, verification, sort} = req.query
+    let sql = 'SELECT * FROM professionals WHERE email IS NOT NULL'
+    const params = []
+    let paramCount = 0
+
+    // Filtro por servicio
+    if(serviceId){
+      paramCount++
+      sql += ` AND service_id = $${paramCount}`
+      params.push(serviceId)
+    }
+
+    // Filtro por verificación
+    if(verification === 'verified'){
+      sql += ' AND verified = true'
+    } else if(verification === 'unverified'){
+      sql += ' AND verified = false'
+    }
+
+    // Ordenamiento
+    if(sort === 'name_desc'){
+      sql += ' ORDER BY name DESC'
+    } else if(sort === 'verified'){
+      sql += ' ORDER BY verified DESC, name ASC'
+    } else {
+      sql += ' ORDER BY name ASC'
+    }
+
+    const r=await c.query(sql, params)
     res.json(r.rows)
   }finally{c.release()}
 })

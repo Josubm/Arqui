@@ -66,11 +66,6 @@ app.post('/bookings',async(req,res)=>{
   console.log('POST /bookings recibido, usuario:', me)
   if(!me)return res.status(401).json({error:'No autorizado'})
   
-  // ✅ NUEVO: VALIDACIÓN DE ROLES - Solo contratadores pueden crear citas
-  if(me.role==='professional'){
-    return res.status(403).json({error:'Los profesionales no pueden crear solicitudes de cita'})
-  }
-  
   const {professionalEmail, professionalName, requestDate, address, description, userPhone}=req.body||{}
   console.log('POST /bookings body=',req.body,' user=',me&&{id:me.id,email:me.email,name:me.name})
   if(!professionalEmail||!requestDate||!address||!description){
@@ -151,6 +146,17 @@ app.get('/bookings/professional/:email',async(req,res)=>{
     res.json(r.rows)
   }finally{c.release()}
 })
+
+// Endpoint público: COMENTADO por seguridad
+// app.get('/bookings/public/:email', async (req, res) => {
+//   const {email}=req.params
+//   const emailPlain = (()=>{ try{return decodeURIComponent(email)}catch{return email} })()
+//   const c = await pool.connect()
+//   try{
+//     const r = await c.query("SELECT * FROM bookings WHERE professional_email=$1 AND status <> 'rejected' ORDER BY created_at DESC",[emailPlain])
+//     res.json(r.rows)
+//   }finally{ c.release() }
+// })
 
 // Actualizar estado de una cita
 app.put('/bookings/:id/status',async(req,res)=>{

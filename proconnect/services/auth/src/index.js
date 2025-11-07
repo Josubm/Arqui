@@ -3,7 +3,7 @@ import cors from 'cors'
 import {Pool} from 'pg'
 import {config} from 'dotenv'
 import jwt from 'jsonwebtoken'
-import bcrypt from 'bcrypt'
+import crypto from 'crypto'
 import {getDb} from './db/dbFactory.js'
 config()
 
@@ -23,24 +23,24 @@ async function init(){
       name TEXT NOT NULL DEFAULT 'Usuario',
       role TEXT NOT NULL DEFAULT 'contractor'
     );`)
+    // Asegurar columna role en esquemas previos
     await client.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'contractor';")
+    // Normalizar filas antiguas sin role
     await client.query("UPDATE users SET role='contractor' WHERE role IS NULL;")
-    
-    // ✅ USANDO BCRYPT PARA CONTRASEÑA SEGURA
-    const demoPass=await bcrypt.hash('demo1234',12)
+    const demoPass=hash('demo1234')
     await client.query(`INSERT INTO users(email,password_hash,name,role)
       VALUES($1,$2,$3,$4) ON CONFLICT (email) DO NOTHING`,['demo@proconnect.local',demoPass,'Demo','contractor'])
   }finally{client.release()}
 }
+function hash(p){return crypto.createHash('sha256').update(p).digest('hex')}
 
 app.post('/register',async(req,res)=>{
   const {email,password,name,role}=req.body||{}
   if(!email||!password||!name){return res.status(400).json({error:'Faltan campos'})}
   const client=await pool.connect()
   try{
-    // ✅ USANDO BCRYPT PARA NUEVOS REGISTROS
-    const passwordHash=await bcrypt.hash(password,12)
-    const r=await client.query('INSERT INTO users(email,password_hash,name,role) VALUES($1,$2,$3,$4) RETURNING id,email,name,role',[email,passwordHash,name,role||'contractor'])
+    const ph=hash(password)
+    const r=await client.query('INSERT INTO users(email,password_hash,name,role) VALUES($1,$2,$3,$4) RETURNING id,email,name,role',[email,ph,name,role||'contractor'])
     res.status(201).json(r.rows[0])
   }catch(e){res.status(400).json({error:'Email ya existente'})}
   finally{client.release()}
@@ -54,11 +54,7 @@ app.post('/login',async(req,res)=>{
     const r=await client.query('SELECT * FROM users WHERE email=$1',[email])
     if(!r.rowCount){return res.status(401).json({error:'Credenciales inválidas'})}
     const u=r.rows[0]
-    
-    // ✅ VERIFICACIÓN CON BCRYPT
-    const isValidPassword=await bcrypt.compare(password,u.password_hash)
-    if(!isValidPassword){return res.status(401).json({error:'Credenciales inválidas'})}
-    
+    if(hash(password)!==u.password_hash){return res.status(401).json({error:'Credenciales inválidas'})}
     const token=jwt.sign({sub:u.id,email:u.email,name:u.name,role:u.role},process.env.JWT_SECRET||'secret',{expiresIn:'2h'})
     res.json({token,role:u.role})
   }finally{client.release()}
